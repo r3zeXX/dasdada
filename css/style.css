@@ -1,0 +1,16 @@
+/* 
+  style.css — Entry point (utility overrides only)
+  All modules are loaded via <link> tags in index.html
+  to ensure compatibility when opening via file:// protocol.
+*/
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.u-text-center { text-align: center; }
+
+.c-nav__brand { text-decoration: none; }

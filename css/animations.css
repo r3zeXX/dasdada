@@ -1,0 +1,40 @@
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Animation Classes */
+.u-anim-fade-in {
+  animation: fadeIn var(--transition-base) forwards;
+}
+
+.c-spinner {
+  animation: spin 1s linear infinite;
+}
+
+.c-skeleton::after {
+  animation: shimmer 1.5s infinite;
+}
+
+.c-toast {
+  animation: slideInRight var(--transition-base) forwards;
+}
+
+/* Staggered loading */
+.u-stagger-1 { animation-delay: 100ms; opacity: 0; }
+.u-stagger-2 { animation-delay: 200ms; opacity: 0; }
+.u-stagger-3 { animation-delay: 300ms; opacity: 0; }
+.u-stagger-4 { animation-delay: 400ms; opacity: 0; }

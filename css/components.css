@@ -1,0 +1,267 @@
+/* 
+  Components Architecture 
+  BEM Prefix: c-
+*/
+
+/* Hero Banner */
+.c-hero {
+  text-align: center;
+  padding: var(--space-16) 0 var(--space-12);
+  position: relative;
+}
+
+.c-hero__title {
+  font-size: clamp(2.5rem, 5vw, var(--font-size-4xl));
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+  line-height: 1.1;
+}
+
+.c-hero__subtitle {
+  font-size: clamp(1.125rem, 2vw, var(--font-size-xl));
+  color: var(--color-muted);
+  max-width: 650px;
+  margin: 0 auto;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* Section Header */
+.c-section-header {
+  margin-bottom: var(--space-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.c-section-header__title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+/* Premium Card */
+.c-card {
+  background-color: var(--color-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--color-border);
+  transition: all var(--transition-spring);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.c-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-float), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.c-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+}
+
+.c-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.c-card__body {
+  flex: 1;
+}
+
+.c-card__footer {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  display: flex;
+}
+
+/* Statistic Card within main card */
+.c-stat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.c-stat-card__value {
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: var(--space-2) 0;
+}
+
+/* Badges */
+.c-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.c-badge--success { background-color: rgba(52, 199, 89, 0.15); color: #248A3D; }
+.c-badge--warning { background-color: rgba(255, 159, 10, 0.15); color: #B26B00; }
+.c-badge--danger { background-color: rgba(255, 59, 48, 0.15); color: #C92A22; }
+.c-badge--neutral { background-color: var(--color-background); color: var(--color-muted); }
+
+/* Buttons */
+.c-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 1.75rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .c-btn { width: auto; }
+}
+
+.c-btn:active {
+  transform: scale(0.96);
+}
+
+.c-btn--primary {
+  background-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.c-btn--primary:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+}
+
+.c-btn--outline {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-border);
+  color: var(--color-text);
+}
+
+.c-btn--outline:hover {
+  background-color: var(--color-background);
+}
+
+/* Navbar - Apple Frosted Glass effect */
+.c-nav {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.c-nav__link {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.c-nav__link:hover,
+.c-nav__link--active {
+  color: var(--color-text);
+}
+
+.c-nav__brand {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Info Card */
+.c-info-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+}
+
+.c-info-card__label {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.c-info-card__value {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+/* Toast */
+.c-toast-container {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  z-index: 1000;
+}
+
+.c-toast {
+  background-color: rgba(25, 25, 25, 0.95);
+  backdrop-filter: blur(20px);
+  color: #fff;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-float);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.c-toast--error {
+  background-color: rgba(255, 59, 48, 0.95);
+}
+
+/* Skeleton Loader */
+.c-skeleton {
+  background: var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.c-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.5) 20%,
+    rgba(255, 255, 255, 0.8) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.c-skeleton--card { height: 320px; border-radius: var(--radius-xl); box-shadow: none; border: 1px solid var(--color-border); }

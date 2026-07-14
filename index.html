@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroDash — แพลตฟอร์มสภาพอากาศประเทศไทย</title>
+  <meta name="description" content="ติดตามสภาพอากาศและคุณภาพอากาศทุกจังหวัดในประเทศไทยแบบเรียลไทม์">
+
+  <!-- DNS / Preconnect hints -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://api.open-meteo.com">
+  <link rel="dns-prefetch" href="https://air-quality-api.open-meteo.com">
+
+  <!-- Thai font -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+
+  <!-- App CSS modules -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/weather-animations.css">
+
+  <style>
+    /* ── Base ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--color-background);
+      color: var(--color-text);
+      min-height: 100vh;
+    }
+
+    /* ── Province Selector ──────────────────────── */
+    .c-select {
+      appearance: none;
+      background-color: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      padding: 0.55rem 2.4rem 0.55rem 1.1rem;
+      border-radius: var(--radius-full);
+      font-family: 'Sarabun', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-text);
+      cursor: pointer;
+      min-width: 190px;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2386868B' stroke-width='2.5'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      background-size: 1em;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .c-select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
+    }
+
+    /* ── Icon Button ────────────────────────────── */
+    .c-btn-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--color-surface); border: 1.5px solid var(--color-border);
+      cursor: pointer; transition: background 0.2s, transform 0.15s;
+      color: var(--color-text); flex-shrink: 0;
+    }
+    .c-btn-icon:hover { background: var(--color-background); transform: scale(1.08); }
+    .c-btn-icon svg { width: 17px; height: 17px; }
+
+    /* ── Live badge ─────────────────────────────── */
+    .c-live-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(52,199,89,0.12); color: #1d7a3b;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 3px 9px; border-radius: 9999px;
+      text-transform: uppercase;
+    }
+    .c-live-badge::before {
+      content: ''; display: block;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #34C759;
+      animation: live-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* ── Cards ──────────────────────────────────── */
+    .dash-card {
+      background: var(--color-card);
+      border-radius: 24px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px var(--color-border);
+      transition: box-shadow 0.3s;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* ── Hero temperature ───────────────────────── */
+    .temp-hero {
+      font-size: clamp(4rem, 10vw, 6.5rem);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      transition: color 0.6s ease;
+    }
+    .temp-desc {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* ── Metric tiles ───────────────────────────── */
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1rem; }
+    .metric-tile {
+      background: var(--color-background);
+      border-radius: 14px;
+      padding: 0.75rem 0.85rem;
+      display: flex; flex-direction: column; gap: 2px;
+      border: 1px solid var(--color-border);
+      transition: background 0.3s;
+    }
+    .metric-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--color-muted);
+    }
+    .metric-value {
+      font-size: 1.05rem; font-weight: 700; color: var(--color-text);
+      transition: color 0.5s;
+    }
+
+    /* ── AQI Ring ───────────────────────────────── */
+    .aqi-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+    .aqi-number {
+      font-size: clamp(3.5rem, 9vw, 5.5rem);
+      font-weight: 800; letter-spacing: -0.05em; line-height: 1;
+      transition: color 0.7s ease;
+    }
+    .aqi-label {
+      font-size: 1rem; font-weight: 700; margin-top: 0.1rem;
+      transition: color 0.7s ease;
+    }
+    .aqi-rec {
+      font-size: 0.82rem; color: var(--color-muted); line-height: 1.55;
+      margin-top: 0.3rem; text-align: center; max-width: 280px;
+    }
+    .aqi-bar {
+      width: 100%; height: 8px; border-radius: 99px;
+      background: linear-gradient(to right, #34C759, #8ECC39, #FFCC00, #FF9500, #FF3B30, #AF52DE);
+      margin: 0.6rem 0 0.2rem; position: relative; overflow: visible;
+    }
+    .aqi-bar-thumb {
+      position: absolute; top: 50%; width: 14px; height: 14px;
+      background: white; border: 2px solid currentColor;
+      border-radius: 50%; transform: translate(-50%, -50%);
+      transition: left 0.7s cubic-bezier(0.16,1,0.3,1), border-color 0.7s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* ── Card header row ────────────────────────── */
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
+    .card-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-muted); }
+
+    /* ── Weather icon ───────────────────────────── */
+    .wx-icon { width: 52px; height: 52px; }
+    .wx-icon svg { width: 100%; height: 100%; }
+
+    /* ── Charts ─────────────────────────────────── */
+    .chart-wrap { position: relative; height: 180px; margin-top: 1.25rem; }
+
+    /* ── Map ────────────────────────────────────── */
+    #map { width: 100%; height: 420px; border-radius: 20px; z-index: 0; }
+
+    /* ── Loading fade ───────────────────────────── */
+    .is-loading { opacity: 0.35; transition: opacity 0.4s ease; }
+    .is-loaded  { opacity: 1;    transition: opacity 0.4s ease; }
+
+    /* ── Value update flash ─────────────────────── */
+    @keyframes val-pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+    .val-updated { animation: val-pop 0.35s cubic-bezier(0.16,1,0.3,1); }
+
+    /* ── Dashboard grid ─────────────────────────── */
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem; }
+
+    /* ── Responsive ─────────────────────────────── */
+    @media (max-width: 600px) {
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .c-select { min-width: 140px; font-size: 0.875rem; }
+      .temp-hero { font-size: 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Animated Background ────────────────────── -->
+  <div id="app-bg" class="weather-bg weather-bg--clear" aria-hidden="true"></div>
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <header class="l-header">
+    <div class="l-container l-header__inner">
+      <div class="c-nav__brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/>
+        </svg>
+        AeroDash
+      </div>
+      <div style="display:flex;gap:0.6rem;align-items:center;">
+        <span class="c-live-badge">Live</span>
+        <button id="theme-toggle" class="c-btn-icon" title="สลับธีม" aria-label="สลับธีมมืด/สว่าง">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <label for="province-select" class="u-sr-only">เลือกจังหวัด</label>
+        <select id="province-select" class="c-select" aria-label="เลือกจังหวัด"></select>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════ MAIN ══════════════ -->
+  <main class="l-main l-container" style="position:relative;z-index:1;">
+
+    <div class="dash-grid">
+
+      <!-- ── Weather Card ── -->
+      <div id="weather-content" class="dash-card is-loading" aria-live="polite">
+        <div class="card-head">
+          <span class="card-title">สภาพอากาศ</span>
+          <div class="wx-icon" id="icon-weather" aria-hidden="true"></div>
+        </div>
+
+        <div style="margin-bottom:0.2rem;">
+          <span id="val-temp" class="temp-hero">--°</span>
+        </div>
+        <div id="val-desc" class="temp-desc">กำลังโหลดข้อมูล...</div>
+        <div id="val-province-w" style="font-size:0.8rem;color:var(--color-muted);margin-top:0.15rem;"></div>
+
+        <div class="metric-grid">
+          <div class="metric-tile">
+            <span class="metric-label">รู้สึกเหมือน</span>
+            <span id="val-feels" class="metric-value">--°C</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">ความชื้น</span>
+            <span id="val-humidity" class="metric-value">--%</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">ความเร็วลม</span>
+            <span id="val-wind" class="metric-value">-- km/h</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">ปริมาณฝน</span>
+            <span id="val-rain" class="metric-value">-- mm</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">ความกดอากาศ</span>
+            <span id="val-pressure" class="metric-value">-- hPa</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">UV Index</span>
+            <span id="val-uv" class="metric-value">--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">☀️ ขึ้น</span>
+            <span id="val-sunrise" class="metric-value">--:--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">🌅 ตก</span>
+            <span id="val-sunset" class="metric-value">--:--</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="chart-weather"></canvas>
+        </div>
+      </div>
+
+      <!-- ── AQI Card ── -->
+      <div id="aqi-content" class="dash-card is-loading" aria-live="polite">
+        <div class="card-head">
+          <span class="card-title">คุณภาพอากาศ</span>
+          <span id="val-aqi-update" style="font-size:0.72rem;color:var(--color-muted);"></span>
+        </div>
+
+        <div class="aqi-ring-wrap">
+          <div id="val-aqi" class="aqi-number">--</div>
+          <div id="val-aqi-desc" class="aqi-label">---</div>
+          <!-- AQI progress bar -->
+          <div style="width:100%;">
+            <div class="aqi-bar">
+              <div id="aqi-thumb" class="aqi-bar-thumb" style="left:0%;color:#34C759;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--color-muted);">
+              <span>ดีมาก</span><span>ดี</span><span>ปานกลาง</span><span>เริ่มมีผล</span><span>อันตราย</span>
+            </div>
+          </div>
+          <p id="val-aqi-rec" class="aqi-rec"></p>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-tile">
+            <span class="metric-label">PM2.5</span>
+            <span id="val-pm25" class="metric-value">--</span>
+            <span style="font-size:0.65rem;color:var(--color-muted);">µg/m³</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">PM10</span>
+            <span id="val-pm10" class="metric-value">--</span>
+            <span style="font-size:0.65rem;color:var(--color-muted);">µg/m³</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">CO (ppb)</span>
+            <span id="val-co" class="metric-value">--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">NO₂ (ppb)</span>
+            <span id="val-no2" class="metric-value">--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">SO₂ (ppb)</span>
+            <span id="val-so2" class="metric-value">--</span>
+          </div>
+          <div class="metric-tile">
+            <span class="metric-label">O₃ (ppb)</span>
+            <span id="val-o3" class="metric-value">--</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="chart-aqi"></canvas>
+        </div>
+      </div>
+
+    </div><!-- /dash-grid -->
+
+    <!-- ── Map ── -->
+    <section aria-label="แผนที่ประเทศไทย" style="margin-bottom:2rem;">
+      <h2 style="font-size:0.8rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-muted);margin-bottom:0.75rem;">แผนที่ — คลิกจังหวัดเพื่อเลือก</h2>
+      <div class="dash-card" style="padding:0;overflow:hidden;">
+        <div id="map" role="application" aria-label="แผนที่ประเทศไทย"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════════ FOOTER ══════════════ -->
+  <footer class="l-footer" style="position:relative;z-index:1;">
+    <div class="l-container l-footer__inner">
+      <span>&copy; 2026 AeroDash &mdash; ข้อมูลจาก <a href="https://open-meteo.com" target="_blank" style="color:var(--color-primary);">Open-Meteo</a></span>
+      <span>v4.2.0</span>
+    </div>
+  </footer>
+
+  <div id="toast-container" class="c-toast-container" aria-live="assertive"></div>
+
+  <!-- Scripts: NOT deferred on local CDNs that must be ready before app runs -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="js/provinces.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
